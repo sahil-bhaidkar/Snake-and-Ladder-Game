@@ -2,8 +2,8 @@ import tkinter as tk
 import random
 
 # Board configuration
-snakes = {14: 7, 31: 26, 38: 1, 84: 28, 95: 73, 99: 78}
-ladders = {3: 22, 5: 8, 11: 26, 20: 29, 27: 56, 39: 60, 50: 91, 63: 81, 72: 92}
+snakes = {14: 7, 38: 1, 84: 28, 95: 73, 99: 78}
+ladders = {3: 22, 11: 26, 27: 56, 39: 60, 50: 91, 63: 81, 72: 92}
 
 class SnakeAndLadder:
     def __init__(self, root):
