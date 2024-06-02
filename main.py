@@ -2,8 +2,8 @@ import tkinter as tk
 import random
 
 # Board configuration
-snakes = {14: 7, 38: 1, 84: 28, 95: 73, 99: 78}
-ladders = {3: 22, 11: 26, 27: 56, 39: 60, 50: 91, 63: 81, 72: 92}
+snakes = {14: 7, 31: 26, 38: 1, 84: 28, 95: 73, 99: 78}
+ladders = {3: 22, 5: 8, 11: 26, 20: 29, 27: 56, 39: 60, 50: 91, 63: 81, 72: 92}
 
 class SnakeAndLadder:
     def __init__(self, root):
@@ -88,8 +88,8 @@ class SnakeAndLadder:
             self.roll_button.config(state=tk.DISABLED)
     
     def update_board(self):
-        row = (100 - self.position) // self.board_size
-        col = (100 - self.position) % self.board_size
+        row = (99 - self.position) // self.board_size  # Adjusted the calculation to ensure the player's position does not exceed 100
+        col = (99 - self.position) % self.board_size
         if row % 2 == 0:
             col = self.board_size - 1 - col
         x1 = col * self.cell_size
