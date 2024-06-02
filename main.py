@@ -33,10 +33,29 @@ class SnakeAndLadder:
             y2 = y1 + self.cell_size
             self.cells[cell_number] = self.board.create_rectangle(x1, y1, x2, y2, fill="white")
             self.board.create_text(x1 + self.cell_size//2, y1 + self.cell_size//2, text=str(cell_number))
+
+        for start, end in snakes.items():
+            self.draw_line(start, end, "red")
+        for start, end in ladders.items():
+            self.draw_line(start, end, "green")
         
         self.player = self.board.create_oval(0, 0, self.cell_size, self.cell_size, fill="yellow")
         self.update_board()
         
+    def draw_line(self, start, end, color):
+        start_row, start_col = divmod(100 - start, self.board_size)
+        end_row, end_col = divmod(100 - end, self.board_size)
+        if start_row % 2 == 0:
+            start_col = self.board_size - 1 - start_col
+        if end_row % 2 == 0:
+            end_col = self.board_size - 1 - end_col
+
+        x1 = start_col * self.cell_size + self.cell_size // 2
+        y1 = start_row * self.cell_size + self.cell_size // 2
+        x2 = end_col * self.cell_size + self.cell_size // 2
+        y2 = end_row * self.cell_size + self.cell_size // 2
+        self.board.create_line(x1, y1, x2, y2, fill=color, width=2)
+    
     def create_ui(self):
         self.message = tk.Label(self.root, text="Press the button to roll the dice.")
         self.message.grid(row=1, column=0, columnspan=3)
