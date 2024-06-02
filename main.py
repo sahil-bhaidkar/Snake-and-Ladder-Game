@@ -12,7 +12,7 @@ class SnakeAndLadder:
         self.board_size = 10
         self.cell_size = 50
         self.position = 0
-        
+
         self.create_board()
         self.create_ui()
         
@@ -21,6 +21,7 @@ class SnakeAndLadder:
         self.board.grid(row=0, column=0, columnspan=3)
         
         self.cells = {}
+        colors = ["#D2B48C", "#8FBC8F"]
         for i in range(100):
             row = i // self.board_size
             col = i % self.board_size
@@ -31,7 +32,8 @@ class SnakeAndLadder:
             y1 = row * self.cell_size
             x2 = x1 + self.cell_size
             y2 = y1 + self.cell_size
-            self.cells[cell_number] = self.board.create_rectangle(x1, y1, x2, y2, fill="white")
+            color = colors[(row + col) % 2]
+            self.cells[cell_number] = self.board.create_rectangle(x1, y1, x2, y2, fill=color)
             self.board.create_text(x1 + self.cell_size//2, y1 + self.cell_size//2, text=str(cell_number))
 
         for start, end in snakes.items():
