@@ -1,39 +1,85 @@
+import tkinter as tk
 import random
 
 # Board configuration
 snakes = {14: 7, 31: 26, 38: 1, 84: 28, 95: 73, 99: 78}
 ladders = {3: 22, 5: 8, 11: 26, 20: 29, 27: 56, 39: 60, 50: 91, 63: 81, 72: 92}
 
-# Function to roll the dice
-def roll_dice():
-    return random.randint(1, 6)
-
-# Function to move the player
-def move_player(position):
-    roll = roll_dice()
-    print(f"Rolled a {roll}")
-    position += roll
-
-    if position in snakes:
-        print(f"Oops! Landed on a snake at {position}. Sliding down to {snakes[position]}.")
-        position = snakes[position]
-    elif position in ladders:
-        print(f"Yay! Landed on a ladder at {position}. Climbing up to {ladders[position]}.")
-        position = ladders[position]
-    
-    return position
-
-# Main game loop
-def play_game():
-    position = 0
-    while position < 100:
-        input("Press Enter to roll the dice.")
-        position = move_player(position)
-        print(f"New position: {position}")
+class SnakeAndLadder:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Snake and Ladder Game")
+        self.board_size = 10
+        self.cell_size = 50
+        self.position = 0
         
-        if position >= 100:
-            print("Congratulations! You've won the game.")
-            break
+        self.create_board()
+        self.create_ui()
+        
+    def create_board(self):
+        self.board = tk.Canvas(self.root, width=self.board_size*self.cell_size, height=self.board_size*self.cell_size)
+        self.board.grid(row=0, column=0, columnspan=3)
+        
+        self.cells = {}
+        for i in range(100):
+            row = i // self.board_size
+            col = i % self.board_size
+            if row % 2 == 0:
+                col = self.board_size - 1 - col
+            cell_number = 100 - i
+            x1 = col * self.cell_size
+            y1 = row * self.cell_size
+            x2 = x1 + self.cell_size
+            y2 = y1 + self.cell_size
+            self.cells[cell_number] = self.board.create_rectangle(x1, y1, x2, y2, fill="white")
+            self.board.create_text(x1 + self.cell_size//2, y1 + self.cell_size//2, text=str(cell_number))
+        
+        self.player = self.board.create_oval(0, 0, self.cell_size, self.cell_size, fill="yellow")
+        self.update_board()
+        
+    def create_ui(self):
+        self.message = tk.Label(self.root, text="Press the button to roll the dice.")
+        self.message.grid(row=1, column=0, columnspan=3)
+        
+        self.roll_button = tk.Button(self.root, text="Roll Dice", command=self.play_game)
+        self.roll_button.grid(row=2, column=1)
+        
+    def roll_dice(self):
+        return random.randint(1, 6)
+    
+    def move_player(self):
+        roll = self.roll_dice()
+        self.message['text'] = f"Rolled a {roll}"
+        self.position += roll
+        
+        if self.position in snakes:
+            self.message['text'] += f"\nOops! Landed on a snake at {self.position}. Sliding down to {snakes[self.position]}."
+            self.position = snakes[self.position]
+        elif self.position in ladders:
+            self.message['text'] += f"\nYay! Landed on a ladder at {self.position}. Climbing up to {ladders[self.position]}."
+            self.position = ladders[self.position]
+        
+        self.message['text'] += f"\nNew position: {self.position}"
+        self.update_board()
+        
+        if self.position >= 100:
+            self.message['text'] += "\nCongratulations! You've won the game."
+            self.roll_button.config(state=tk.DISABLED)
+    
+    def update_board(self):
+        row = (100 - self.position) // self.board_size
+        col = (100 - self.position) % self.board_size
+        if row % 2 == 0:
+            col = self.board_size - 1 - col
+        x1 = col * self.cell_size
+        y1 = row * self.cell_size
+        x2 = x1 + self.cell_size
+        y2 = y1 + self.cell_size
+        self.board.coords(self.player, x1, y1, x2, y2)
+    
+    def play_game(self):
+        self.move_player()
 
-# Start the game
-play_game()
+root = tk.Tk()
+game = SnakeAndLadder(root)
+root.mainloop()
