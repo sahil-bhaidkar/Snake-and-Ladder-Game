@@ -1,5 +1,6 @@
 import tkinter as tk
 import random
+from tkinter.simpledialog import askinteger, askstring, askyesno
 
 # Board configuration
 snakes = {14: 7, 31: 26, 38: 1, 84: 28, 95: 73, 99: 78}
@@ -11,10 +12,27 @@ class SnakeAndLadder:
         self.root.title("Snake and Ladder Game")
         self.board_size = 10
         self.cell_size = 50
-        self.position = 0
+        self.players = []
+        self.num_players = 1
+        self.current_player = 0
 
+        self.setup_game()
         self.create_board()
         self.create_ui()
+
+    def setup_game(self):
+        # Ask if the user wants to play with multiple players
+        if askyesno("Multiplayer", "Do you want to play with multiple players?"):
+            self.num_players = askinteger("Number of Players", "Enter the number of players:", minvalue=2, maxvalue=4)
+        for i in range(self.num_players):
+            self.players.append({
+                "name": askstring("Player Name", f"Enter the name for Player {i + 1}:") or f"Player {i + 1}",
+                "position": 0,
+                "color": self.random_color()
+            })
+
+    def random_color(self):
+        return "#{:06x}".format(random.randint(0, 0xFFFFFF))
 
     def create_board(self):
         self.board = tk.Canvas(self.root, width=self.board_size * self.cell_size, height=self.board_size * self.cell_size)
@@ -35,7 +53,10 @@ class SnakeAndLadder:
         self.draw_lines(snakes, "red")
         self.draw_lines(ladders, "green")
 
-        self.player = self.board.create_oval(0, 0, self.cell_size, self.cell_size, fill="yellow")
+        self.player_ovals = []
+        for player in self.players:
+            player_oval = self.board.create_oval(0, 0, self.cell_size, self.cell_size, fill=player["color"])
+            self.player_ovals.append(player_oval)
         self.update_board()
 
     def draw_lines(self, mapping, color):
@@ -65,30 +86,39 @@ class SnakeAndLadder:
         return random.randint(1, 6)
 
     def move_player(self):
+        current = self.players[self.current_player]
         roll = self.roll_dice()
-        self.message['text'] = f"Rolled a {roll}"
-        self.position += roll
+        self.message['text'] = f"{current['name']} rolled a {roll}"
 
-        if self.position in snakes:
-            self.message['text'] += f"\nOops! Landed on a snake at {self.position}. Sliding down to {snakes[self.position]}."
-            self.position = snakes[self.position]
-        elif self.position in ladders:
-            self.message['text'] += f"\nYay! Landed on a ladder at {self.position}. Climbing up to {ladders[self.position]}."
-            self.position = ladders[self.position]
+        if current['position'] + roll > 100:
+            self.message['text'] += "\nRoll exceeds final position. Try again next turn."
+        else:
+            current['position'] += roll
 
-        self.message['text'] += f"\nNew position: {self.position}"
-        self.update_board()
+            if current['position'] in snakes:
+                self.message['text'] += f"\nOops! {current['name']} landed on a snake at {current['position']}. Sliding down to {snakes[current['position']]}."
+                current['position'] = snakes[current['position']]
+            elif current['position'] in ladders:
+                self.message['text'] += f"\nYay! {current['name']} landed on a ladder at {current['position']}. Climbing up to {ladders[current['position']]}."
+                current['position'] = ladders[current['position']]
 
-        if self.position >= 100:
-            self.message['text'] += "\nCongratulations! You've won the game."
-            self.roll_button.config(state=tk.DISABLED)
+            self.message['text'] += f"\n{current['name']}'s new position: {current['position']}"
+            self.update_board()
+
+            if current['position'] == 100:
+                self.message['text'] += f"\nCongratulations! {current['name']} has won the game."
+                self.roll_button.config(state=tk.DISABLED)
+            else:
+                self.current_player = (self.current_player + 1) % self.num_players
+                self.message['text'] += f"\n{self.players[self.current_player]['name']}'s turn."
 
     def update_board(self):
-        if self.position > 100:
-            self.position = 100
-        x1, y1 = self.get_cell_top_left(self.position)
-        x2, y2 = x1 + self.cell_size, y1 + self.cell_size
-        self.board.coords(self.player, x1, y1, x2, y2)
+        for i, player in enumerate(self.players):
+            if player['position'] > 100:
+                player['position'] = 100
+            x1, y1 = self.get_cell_top_left(player['position'])
+            x2, y2 = x1 + self.cell_size, y1 + self.cell_size
+            self.board.coords(self.player_ovals[i], x1, y1, x2, y2)
 
     def get_cell_top_left(self, position):
         row, col = divmod(99 - position, self.board_size)
