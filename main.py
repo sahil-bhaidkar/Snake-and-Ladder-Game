@@ -1,6 +1,7 @@
 import tkinter as tk
 import random
-from tkinter.simpledialog import askinteger, askstring, askyesno
+from tkinter.simpledialog import askinteger, askstring
+from tkinter.messagebox import askyesno
 
 # Board configuration
 snakes = {14: 7, 31: 26, 38: 1, 84: 28, 95: 73, 99: 78}
