@@ -15,21 +15,27 @@ class SnakeAndLadder:
         self.players = []
         self.num_players = 1
         self.current_player = 0
+        self.is_vs_computer = False
 
         self.setup_game()
         self.create_board()
         self.create_ui()
 
     def setup_game(self):
-        # Ask if the user wants to play with multiple players
-        if askyesno("Multiplayer", "Do you want to play with multiple players?"):
-            self.num_players = askinteger("Number of Players", "Enter the number of players:", minvalue=2, maxvalue=4)
-        for i in range(self.num_players):
-            self.players.append({
-                "name": askstring("Player Name", f"Enter the name for Player {i + 1}:") or f"Player {i + 1}",
-                "position": 0,
-                "color": self.random_color()
-            })
+        # Ask if the user wants to play against the computer
+        if askyesno("Game Mode", "Do you want to play against the computer?"):
+            self.is_vs_computer = True
+            self.num_players = 2
+            player_name = askstring("Player Name", "Enter your name:") or "Player 1"
+            self.players.append({"name": player_name, "position": 0, "color": self.random_color()})
+            self.players.append({"name": "Computer", "position": 0, "color": self.random_color()})
+        else:
+            # Ask if the user wants to play with multiple players
+            if askyesno("Multiplayer", "Do you want to play with multiple players?"):
+                self.num_players = askinteger("Number of Players", "Enter the number of players:", minvalue=2, maxvalue=4)
+            for i in range(self.num_players):
+                player_name = askstring("Player Name", f"Enter the name for Player {i + 1}:") or f"Player {i + 1}"
+                self.players.append({"name": player_name, "position": 0, "color": self.random_color()})
 
     def random_color(self):
         return "#{:06x}".format(random.randint(0, 0xFFFFFF))
@@ -111,6 +117,8 @@ class SnakeAndLadder:
             else:
                 self.current_player = (self.current_player + 1) % self.num_players
                 self.message['text'] += f"\n{self.players[self.current_player]['name']}'s turn."
+                if self.is_vs_computer and self.players[self.current_player]['name'] == "Computer":
+                    self.root.after(1000, self.play_game)
 
     def update_board(self):
         for i, player in enumerate(self.players):
