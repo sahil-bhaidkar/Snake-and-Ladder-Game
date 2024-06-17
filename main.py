@@ -15,89 +15,87 @@ class SnakeAndLadder:
 
         self.create_board()
         self.create_ui()
-        
+
     def create_board(self):
-        self.board = tk.Canvas(self.root, width=self.board_size*self.cell_size, height=self.board_size*self.cell_size)
+        self.board = tk.Canvas(self.root, width=self.board_size * self.cell_size, height=self.board_size * self.cell_size)
         self.board.grid(row=0, column=0, columnspan=3)
-        
+
         self.cells = {}
         colors = ["#D2B48C", "#8FBC8F"]
         for i in range(100):
-            row = i // self.board_size
-            col = i % self.board_size
-            if row % 2 == 0:
-                col = self.board_size - 1 - col
+            row, col = divmod(i, self.board_size)
+            col = col if row % 2 == 1 else self.board_size - 1 - col
             cell_number = 100 - i
-            x1 = col * self.cell_size
-            y1 = row * self.cell_size
-            x2 = x1 + self.cell_size
-            y2 = y1 + self.cell_size
+            x1, y1 = col * self.cell_size, row * self.cell_size
+            x2, y2 = x1 + self.cell_size, y1 + self.cell_size
             color = colors[(row + col) % 2]
             self.cells[cell_number] = self.board.create_rectangle(x1, y1, x2, y2, fill=color)
-            self.board.create_text(x1 + self.cell_size//2, y1 + self.cell_size//2, text=str(cell_number))
+            self.board.create_text((x1 + x2) // 2, (y1 + y2) // 2, text=str(cell_number), font=("Arial", 12, "bold"))
 
-        for start, end in snakes.items():
-            self.draw_line(start, end, "red")
-        for start, end in ladders.items():
-            self.draw_line(start, end, "green")
-        
+        self.draw_lines(snakes, "red")
+        self.draw_lines(ladders, "green")
+
         self.player = self.board.create_oval(0, 0, self.cell_size, self.cell_size, fill="yellow")
         self.update_board()
-        
-    def draw_line(self, start, end, color):
-        start_row, start_col = divmod(100 - start, self.board_size)
-        end_row, end_col = divmod(100 - end, self.board_size)
-        if start_row % 2 == 0:
-            start_col = self.board_size - 1 - start_col
-        if end_row % 2 == 0:
-            end_col = self.board_size - 1 - end_col
 
-        x1 = start_col * self.cell_size + self.cell_size // 2
-        y1 = start_row * self.cell_size + self.cell_size // 2
-        x2 = end_col * self.cell_size + self.cell_size // 2
-        y2 = end_row * self.cell_size + self.cell_size // 2
-        self.board.create_line(x1, y1, x2, y2, fill=color, width=2)
-    
+    def draw_lines(self, mapping, color):
+        for start, end in mapping.items():
+            self.draw_line(start, end, color)
+
+    def draw_line(self, start, end, color):
+        start_x, start_y = self.get_cell_center(start)
+        end_x, end_y = self.get_cell_center(end)
+        self.board.create_line(start_x, start_y, end_x, end_y, fill=color, width=2)
+
+    def get_cell_center(self, position):
+        row, col = divmod(100 - position, self.board_size)
+        col = col if row % 2 == 1 else self.board_size - 1 - col
+        x = col * self.cell_size + self.cell_size // 2
+        y = row * self.cell_size + self.cell_size // 2
+        return x, y
+
     def create_ui(self):
-        self.message = tk.Label(self.root, text="Press the button to roll the dice.")
-        self.message.grid(row=1, column=0, columnspan=3)
-        
-        self.roll_button = tk.Button(self.root, text="Roll Dice", command=self.play_game)
+        self.message = tk.Label(self.root, text="Press the button to roll the dice.", font=("Arial", 14))
+        self.message.grid(row=1, column=0, columnspan=3, pady=10)
+
+        self.roll_button = tk.Button(self.root, text="Roll Dice", command=self.play_game, font=("Arial", 14))
         self.roll_button.grid(row=2, column=1)
-        
+
     def roll_dice(self):
         return random.randint(1, 6)
-    
+
     def move_player(self):
         roll = self.roll_dice()
         self.message['text'] = f"Rolled a {roll}"
         self.position += roll
-        
+
         if self.position in snakes:
             self.message['text'] += f"\nOops! Landed on a snake at {self.position}. Sliding down to {snakes[self.position]}."
             self.position = snakes[self.position]
         elif self.position in ladders:
             self.message['text'] += f"\nYay! Landed on a ladder at {self.position}. Climbing up to {ladders[self.position]}."
             self.position = ladders[self.position]
-        
+
         self.message['text'] += f"\nNew position: {self.position}"
         self.update_board()
-        
+
         if self.position >= 100:
             self.message['text'] += "\nCongratulations! You've won the game."
             self.roll_button.config(state=tk.DISABLED)
-    
+
     def update_board(self):
-        row = (99 - self.position) // self.board_size  # Adjusted the calculation to ensure the player's position does not exceed 100
-        col = (99 - self.position) % self.board_size
-        if row % 2 == 0:
-            col = self.board_size - 1 - col
-        x1 = col * self.cell_size
-        y1 = row * self.cell_size
-        x2 = x1 + self.cell_size
-        y2 = y1 + self.cell_size
+        if self.position > 100:
+            self.position = 100
+        x1, y1 = self.get_cell_top_left(self.position)
+        x2, y2 = x1 + self.cell_size, y1 + self.cell_size
         self.board.coords(self.player, x1, y1, x2, y2)
-    
+
+    def get_cell_top_left(self, position):
+        row, col = divmod(99 - position, self.board_size)
+        col = col if row % 2 == 1 else self.board_size - 1 - col
+        x, y = col * self.cell_size, row * self.cell_size
+        return x, y
+
     def play_game(self):
         self.move_player()
 
